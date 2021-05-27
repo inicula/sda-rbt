@@ -1,7 +1,6 @@
-#include <fmt/core.h>
 #include <cassert>
-
-using fmt::print;
+#include <iostream>
+#include <vector>
 
 template<typename T>
 class RedBlackTree
@@ -51,6 +50,22 @@ public:
         void print_inorder(FILE* f) const
         {
                 print_inorder(f, root);
+        }
+
+        Node* inorder_successor(const T& key) const
+        {
+                Node* node = nullptr;
+                inorder_successor_helper(root, node, key);
+
+                return node;
+        }
+
+        Node* inorder_predecessor(const T& key) const
+        {
+                Node* node = nullptr;
+                inorder_predecessor_helper(root, node, key);
+
+                return node;
         }
 
         std::vector<T> get_inorder_vector() const
@@ -160,13 +175,13 @@ public:
         }
 
 private:
-        void print_inorder(FILE* f, const Node* node) const
+        void print_inorder(std::ostream& os, const Node* node) const
         {
                 if(node != nullptr)
                 {
-                        print_inorder(f, node->left);
-                        fmt::print(f, "{}\n", node->key);
-                        print_inorder(f, node->right);
+                        print_inorder(os, node->left);
+                        os << node->key << '\n';
+                        print_inorder(os, node->right);
                 }
         }
 
@@ -239,6 +254,82 @@ private:
                         free_nodes(node->left);
                         free_nodes(node->right);
                         delete node;
+                }
+        }
+
+        Node* find_max(Node* node) const
+        {
+                assert(node != nullptr);
+
+                while(node->right != nullptr)
+                {
+                        node = node->right;
+                }
+
+                return node;
+        }
+
+        Node* find_min(Node* node) const
+        {
+                assert(node != nullptr);
+
+                while(node->left != nullptr)
+                {
+                        node = node->left;
+                }
+
+                return node;
+        }
+
+        void inorder_successor_helper(Node* root, Node*& suc, const T& key) const
+        {
+                if(root == nullptr)
+                {
+                        return;
+                }
+
+                if(key == root->key)
+                {
+                        if(root->right != nullptr)
+                        {
+                                suc = find_min(root->right);
+                                return;
+                        }
+                }
+                else if(key < root->key)
+                {
+                        suc = root;
+                        inorder_successor_helper(root->left, suc, key);
+                }
+                else
+                {
+                        inorder_successor_helper(root->right, suc, key);
+                }
+        }
+
+        void inorder_predecessor_helper(Node* root, Node*& pred, const T& key) const
+        {
+                if(root == nullptr)
+                {
+                        return;
+                }
+
+                if(key == root->key)
+                {
+                        if(root->left != nullptr)
+                        {
+                                pred = find_max(root->left);
+                                return;
+                        }
+                }
+                else if(key < root->key)
+                {
+                        inorder_predecessor_helper(root->left, pred, key);
+                }
+                else
+                {
+                        pred = root;
+                        inorder_predecessor_helper(root->right, pred, key);
                 }
         }
 

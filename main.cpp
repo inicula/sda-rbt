@@ -1,31 +1,58 @@
 #include "rbt.h"
 #include <random>
+#include <algorithm>
+#include <ctime>
+#include <random>
 
-void pvec(const auto& vec)
+void delete_duplicates(auto& vec)
 {
-        for(auto el : vec)
-        {
-                fmt::print("{}\n", el);
-        }
-        fmt::print("\n");
+        std::sort(vec.begin(), vec.end());
+
+        const auto it = std::unique(vec.begin(), vec.end());
+        vec.erase(it, vec.end());
+
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(vec.begin(), vec.end(), g);
 }
 
 int main()
 {
-        std::mt19937 gen(std::random_device{}());
-        std::uniform_int_distribution<int> distrib(1, 100);
+        constexpr int size = 1 << 19;
 
         RedBlackTree<int> rbt;
 
-        for(int i = 0; i < 50; ++i)
+        std::vector<int> random_keys;
+
+        std::srand(std::time(0));
+        for(int i = 0; i < size; ++i)
         {
-                const int value = distrib(gen);
-                // fmt::print("Number inserted: {}\n", value);
-                rbt.insert(value);
+                const int value = std::rand();
+                random_keys.push_back(value);
         }
 
-        const std::vector<int> vec = rbt.get_inorder_vector();
+        delete_duplicates(random_keys);
 
-        pvec(vec);
-        assert(std::is_sorted(vec.begin(), vec.end()));
+        for(int key : random_keys)
+        {
+                rbt.insert(key);
+        }
+
+        const std::vector<int> inorder_vec = rbt.get_inorder_vector();
+        assert(std::is_sorted(inorder_vec.begin(), inorder_vec.end()));
+
+        std::sort(random_keys.begin(), random_keys.end());
+
+        for(unsigned i = 1; i < random_keys.size() - 1; ++i)
+        {
+                const auto pred = rbt.inorder_predecessor(random_keys[i]);
+                const auto suc = rbt.inorder_successor(random_keys[i]);
+
+                // std::cout << pred->key << ' ' << random_keys[i - 1] << '\n';
+                assert(pred->key == random_keys[i - 1]);
+                // std::cout << suc->key << ' ' << random_keys[i + 1] << '\n';
+                assert(suc->key == random_keys[i + 1]);
+        }
+
+        std::cerr << "ok\n";
 }
