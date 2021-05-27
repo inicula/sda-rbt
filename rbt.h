@@ -47,9 +47,9 @@ public:
                 return nullptr;
         }
 
-        void print_inorder(FILE* f) const
+        void print_inorder(std::ostream& os) const
         {
-                print_inorder(f, root);
+                print_inorder(os, root);
         }
 
         Node* inorder_successor(const T& key) const
